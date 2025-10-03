@@ -1,4 +1,6 @@
 #include <iostream>
+#include <iomanip>
+#include <map>
 #include <vector>
 #include <chrono>
 #include <algorithm>
@@ -6,21 +8,36 @@
 #include <random>
 #include <thread>
 
-#define BG_GREY   "\033[40m"
+#define BG_GREY   "\033[41m"
+#define BG_YELLOW   "\033[43m"
 #define BG_GREEN "\033[42m"
 #define RESET    "\033[0m"
 
 using namespace std;
 
+int n=42;
+
 void printMaze(const vector<vector<char>>& maze) {
+
+    // if (n==47)
+    // {
+    //     n=42;
+    // }
+    
+
     for (const auto& row : maze) {
         for (char cell : row) {
             if (cell=='.')
             {
-                cout << BG_GREEN << "  "<<RESET;
+                cout << BG_GREEN<< " "<<RESET;
             } else if (cell=='#')
             {
-                cout << BG_GREY << "  "<<RESET;
+                cout << BG_GREY << " "<<RESET;
+            
+            }
+             else if (cell=='+')
+            {
+                cout << BG_YELLOW << "  "<<RESET;
             
             }
             else{
@@ -63,6 +80,7 @@ bool solve_maze(vector<vector<char>>& maze,int currX,int currY,int tarX, int tar
     // check if path is already visited or wall
     if (
         maze[currY][currX]=='#' ||
+        maze[currY][currX]=='+' ||
         maze[currY][currX]=='.' 
     )
     {
@@ -72,7 +90,7 @@ bool solve_maze(vector<vector<char>>& maze,int currX,int currY,int tarX, int tar
     
     maze[currY][currX] = '.';
     
-    printMaze(maze);
+    // printMaze(maze);
     
     if (
         currX == tarX &&
@@ -107,8 +125,8 @@ bool solve_maze(vector<vector<char>>& maze,int currX,int currY,int tarX, int tar
     }
     
     // back tracking
-    maze[currY][currX] = ' ';
-    printMaze(maze);
+    maze[currY][currX] = '+';
+    // printMaze(maze);
     return false;
 }
 
@@ -126,8 +144,9 @@ vector<vector<char>> generateMaze(int width, int height) {
     }
 
     // Modern C++ random number setup
-    random_device rd;
-    mt19937 g(rd());
+    // random_device rd;
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    mt19937 g(seed);
 
     // Stack for backtracking
     std::stack<pair<int, int>> cell_stack;
@@ -185,6 +204,7 @@ vector<vector<char>> generateMaze(int width, int height) {
     maze[height - 1][width - 2] = ' '; // End
     maze[height - 1][width - 1] = ' '; // End
     maze[height - 2][width - 2] = ' '; // End
+    maze[height - 2][width - 3] = ' '; // End
     maze[height - 1][width - 1] = 'E'; // End
 
 
@@ -192,6 +212,24 @@ vector<vector<char>> generateMaze(int width, int height) {
     return maze;
 }
 
+// --- Simple Uniformity Test Function ---
+void test_uniformity() {
+    // *** The FIX is here ***
+    // Use the high-resolution clock count as the seed. 
+    // This value changes frequently, ensuring a different sequence on every run.
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    
+    std::mt19937 g(seed); 
+
+    // A distribution to keep the numbers within a manageable range (e.g., 0 to 999)
+    std::uniform_int_distribution<> distrib(0, 999);
+
+    std::cout << "Generated sequence:\n";
+    for (int i = 0; i < 5; ++i) {
+        std::cout << distrib(g) << " ";
+    }
+    std::cout << "\n";
+}
 
 int main() {
     // clear screen
@@ -200,19 +238,23 @@ int main() {
     // '#' represents a wall/boundary, ' ' represents a path 
 
     // build a maze
-    std::vector<std::vector<char>> maze = generateMaze(25,25);
+    std::vector<std::vector<char>> maze = generateMaze(300,200);
 
     std::cout << std::endl;
 
     int startX=1;
     int startY=1;
-    int targetX=24;
-    int targetY=24;
+    int targetX=299;
+    int targetY=199;
 
     // solve it
     solve_maze(maze,startX,startY,targetX,targetY);
 
     // show it
-    // printMaze(maze);
+    printMaze(maze);
+
+
+
+
     return 0;
 }
